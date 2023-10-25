@@ -37,12 +37,12 @@ const executeRequest = async (
     : { method, data: { data } }
 
   try {
-    const responseData = await axiosInstance[options.method.toLowerCase()](
+    const { data } = await axiosInstance[options.method.toLowerCase()](
       `/strapi/api${endpoint}`,
       options.data
     )
 
-    return responseData
+    return data.data
   } catch (error) {
     console.error(error)
     return { error }
