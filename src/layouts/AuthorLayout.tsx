@@ -1,10 +1,11 @@
 import { ReactNode } from 'react'
 import SocialIcon from '@/components/social-icons'
 import Image from '@/components/Image'
+import Authors from '@/data/authors'
 
 interface Props {
   children: ReactNode
-  content: Omit<unknown, '_id' | '_raw' | 'body'>
+  content: (typeof Authors)[0]
 }
 
 export default function AuthorLayout({ children, content }: Props) {
