@@ -1,5 +1,5 @@
 import siteMetadata from '@/data/siteMetadata'
-import ListLayout from '@/layouts/ListLayoutWithTags'
+import ListLayout from '@/layouts/ListLayout'
 import tagData from '@/app/tag-data.json'
 import { genPageMetadata } from '@/app/seo'
 import Blog from '@/data/blog'

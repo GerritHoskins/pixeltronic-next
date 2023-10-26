@@ -2,11 +2,12 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+// @ts-ignore
 import { formatDate } from 'pliny/utils/formatDate'
 import Link from '@/components/Link'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
-import tagData from '@/app/tag-data.json'
+import Slugger from '@/utils/slugger'
 
 interface PaginationProps {
   totalPages: number
@@ -15,6 +16,7 @@ interface PaginationProps {
 
 interface ListLayoutProps {
   posts: any[]
+  tags: any[]
   title: string
   initialDisplayPosts?: any[] | []
   pagination?: PaginationProps
@@ -62,17 +64,21 @@ function Pagination({ totalPages, currentPage }: PaginationProps) {
 
 export default function ListLayoutWithTags({
   posts,
+  tags,
   title,
   initialDisplayPosts = [],
   pagination,
 }: ListLayoutProps) {
   const pathname = usePathname() || ''
-  const tagCounts = tagData as Record<string, number>
+  const tagCounts = tags
   const tagKeys = Object.keys(tagCounts)
-  const sortedTags = tagKeys.sort((a, b) => tagCounts[b] - tagCounts[a])
+  const sortedTags = tags.map((tag) => ({
+    id: tag.id,
+    ...tag.attributes,
+  }))
 
   const displayPosts = initialDisplayPosts.length > 0 ? initialDisplayPosts : posts
-  const slug = (tag: string) => tag[0].toUpperCase() + tag.split(' ').join('-').slice(1)
+  const slugger = new Slugger()
   return (
     <>
       <div>
@@ -97,18 +103,18 @@ export default function ListLayoutWithTags({
               <ul>
                 {sortedTags.map((t) => {
                   return (
-                    <li key={Math.random()} className="my-3">
-                      {pathname.split('/tags/')[1] === slug(t) ? (
+                    <li key={t.id} className="my-3">
+                      {pathname.split('/tags/')[1] === slugger.slug(t.name) ? (
                         <h3 className="inline px-3 py-2 text-sm font-bold uppercase text-primary-500">
-                          {`${t} (${tagCounts[t]})`}
+                          {`${t} (${tagCounts[t.name]})`}
                         </h3>
                       ) : (
                         <Link
-                          href={`/tags/${slug}`}
+                          href={`/tags/${slugger.slug(t.name)}`}
                           className="px-3 py-2 text-sm font-medium uppercase text-gray-500 hover:text-primary-500 dark:text-gray-300 dark:hover:text-primary-500"
                           aria-label={`View posts tagged ${t}`}
                         >
-                          {`${t} (${tagCounts[t]})`}
+                          {`${t} (${tagCounts[t.name]})`}
                         </Link>
                       )}
                     </li>
@@ -119,15 +125,17 @@ export default function ListLayoutWithTags({
           </div>
           <div>
             <ul>
-              {displayPosts.map((post, index) => {
-                const { path, date, title, summary, tags } = post
+              {displayPosts.map((post) => {
+                const { path, startDate, title, description, aid } = post.attributes
                 return (
-                  <li key={index} className="py-5">
+                  <li key={aid} className="py-5">
                     <article className="flex flex-col space-y-2 xl:space-y-0">
                       <dl>
                         <dt className="sr-only">Published on</dt>
                         <dd className="text-base font-medium leading-6 text-gray-500 dark:text-gray-400">
-                          <time dateTime={date}>{formatDate(date, siteMetadata.locale)}</time>
+                          <time dateTime={startDate}>
+                            {formatDate(startDate, siteMetadata.locale)}
+                          </time>
                         </dd>
                       </dl>
                       <div className="space-y-3">
@@ -138,13 +146,13 @@ export default function ListLayoutWithTags({
                             </Link>
                           </h2>
                           <div className="flex flex-wrap">
-                            {tags?.map((tag: string, index: number) => (
-                              <Tag key={index} text={tag} />
+                            {tags?.map((tag) => (
+                              <Tag key={tag.attributes.id} text={tag.attributes.name} />
                             ))}
                           </div>
                         </div>
                         <div className="prose max-w-none text-gray-500 dark:text-gray-400">
-                          {summary}
+                          {description}
                         </div>
                       </div>
                     </article>
